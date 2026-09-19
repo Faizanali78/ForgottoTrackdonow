@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8080/ExpTrack";
+const API_BASE_URL = "https://forgottotrackdonow.onrender.com/ExpTrack";
 
 const balance = document.getElementById("balance");
 const income = document.getElementById("income");
