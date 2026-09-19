@@ -1,3 +1,5 @@
+const API_BASE_URL = "http://localhost:8080/ExpTrack";
+
 const balance = document.getElementById("balance");
 const income = document.getElementById("income");
 const expense = document.getElementById("expense");
@@ -8,6 +10,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const addTransaction = document.getElementById("add-transaction");
 
 const username = localStorage.getItem("user");
+
 if (!username) {
   window.location.href = "login.html";
 }
@@ -21,13 +24,20 @@ let transactions = [];
 
 function updateValues() {
   const amounts = transactions.map((t) => t.amount);
-  const total = amounts.reduce((acc, item) => acc + item, 0).toFixed(2);
+
+  const total = amounts
+      .reduce((acc, item) => acc + item, 0)
+      .toFixed(2);
+
   const incomeTotal = amounts
-    .filter((a) => a > 0)
-    .reduce((acc, item) => acc + item, 0)
-    .toFixed(2);
+      .filter((a) => a > 0)
+      .reduce((acc, item) => acc + item, 0)
+      .toFixed(2);
+
   const expenseTotal = (
-    amounts.filter((a) => a < 0).reduce((acc, item) => acc + item, 0) * -1
+      amounts
+          .filter((a) => a < 0)
+          .reduce((acc, item) => acc + item, 0) * -1
   ).toFixed(2);
 
   balance.textContent = `$${total}`;
@@ -37,31 +47,37 @@ function updateValues() {
 
 function addTransactionDOM(transaction) {
   const tr = document.createElement("tr");
+
   tr.innerHTML = `
     <td>${transaction.date}</td>
     <td>${transaction.text}</td>
     <td class="amount ${
       transaction.amount < 0 ? "expense" : ""
-    }">$${transaction.amount.toFixed(2)}</td>
-    <td><button onclick="removeTransaction(${transaction.id})">X</button></td>
+  }">$${transaction.amount.toFixed(2)}</td>
+    <td>
+      <button onclick="removeTransaction(${transaction.id})">X</button>
+    </td>
   `;
+
   list.appendChild(tr);
 }
 
 function removeTransaction(id) {
-  fetch(`http://localhost:8080/ExpTrack/transactions/${username}/${id}`, {
+  fetch(`${API_BASE_URL}/transactions/${username}/${id}`, {
     method: "DELETE",
   })
-    .then(() => {
-      transactions = transactions.filter((t) => t.id !== id);
-      updateUI();
-    })
-    .catch((err) => console.error("Delete failed", err));
+      .then(() => {
+        transactions = transactions.filter((t) => t.id !== id);
+        updateUI();
+      })
+      .catch((err) => console.error("Delete failed", err));
 }
 
 function updateUI() {
   list.innerHTML = "";
+
   transactions.forEach(addTransactionDOM);
+
   updateValues();
 }
 
@@ -80,31 +96,32 @@ addTransaction.addEventListener("click", () => {
     date: new Date().toISOString().split("T")[0],
   };
 
-  fetch(`http://localhost:8080/ExpTrack/transactions/${username}`, {
+  fetch(`${API_BASE_URL}/transactions/${username}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(transaction),
   })
-    .then((res) => res.json())
-    .then((data) => {
-      transactions.push(data);
-      updateUI();
-      text.value = "";
-      amount.value = "";
-    })
-    .catch((err) => console.error("Add failed", err));
+      .then((res) => res.json())
+      .then((data) => {
+        transactions.push(data);
+        updateUI();
+
+        text.value = "";
+        amount.value = "";
+      })
+      .catch((err) => console.error("Add failed", err));
 });
 
 function init() {
-  fetch(`http://localhost:8080/ExpTrack/transactions/${username}`)
-    .then((res) => res.json())
-    .then((data) => {
-      transactions = data;
-      updateUI();
-    })
-    .catch((err) => console.error("Fetch failed", err));
+  fetch(`${API_BASE_URL}/transactions/${username}`)
+      .then((res) => res.json())
+      .then((data) => {
+        transactions = data;
+        updateUI();
+      })
+      .catch((err) => console.error("Fetch failed", err));
 }
 
 init();
